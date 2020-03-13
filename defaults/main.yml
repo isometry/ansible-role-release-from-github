@@ -1,0 +1,33 @@
+---
+release_mandatory_variables:
+  - release_repo
+# release_repo: osrg/gobgp
+release_organisation: "{{ release_repo | dirname }}"
+release_hashicorp_style: "{{ release_organisation == 'hashicorp' }}"
+release_product: "{{ release_repo | basename }}"
+release_version: latest
+release_arch: amd64 # amd64|386
+
+release_validate_certs: "{{ ansible_system != 'Darwin' }}"
+release_latest_release_uri: "https://api.github.com/repos/{{ release_repo }}/releases/latest"
+release_download_base: >-
+  {%-if release_organisation == 'hashicorp'-%}
+  https://releases.hashicorp.com/{{ release_product }}/{{ release_version }}
+  {%-else-%}
+  https://github.com/{{ release_repo }}/releases/download/v{{ release_version }}
+  {%-endif-%}
+
+release_archive_format: "{{ release_hashicorp_style | ternary('zip', 'tar.gz')}}"
+release_archive: "{{ release_product }}_{{ release_version }}_{{ ansible_system|lower }}_{{ release_arch }}.{{ release_archive_format }}"
+release_sumfile_alg: sha256
+release_sumfile_suffix: "{{ release_hashicorp_style | ternary('SHA256SUMS', 'checksums.txt') }}"
+release_sumfile: "{{ release_product }}_{{ release_version }}_{{ release_sumfile_suffix }}"
+
+release_exclude_files:
+  - LICENSE
+  - README.md
+release_owner: "{{ ansible_effective_user_id }}"
+release_group: "{{ ansible_effective_group_id }}"
+release_mode: o-w
+release_tmp_path: /tmp
+release_bin_path: /usr/local/bin

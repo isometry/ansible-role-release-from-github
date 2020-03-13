@@ -1,0 +1,31 @@
+---
+# - name: check mandatory variables
+#   fail:
+#     msg: "Mandatory variable '{{ item }}' is not defined"
+#   when: item not in vars
+#   loop: "{{ release_mandatory_variables }}"
+
+- name: gather required facts
+  setup:
+    gather_subset: min
+
+- name: find latest release
+  include_tasks: latest_version.yml
+  when: release_version == "latest"
+
+- name: download {{ release_product }} {{ release_version }} archive to {{ release_tmp_path }}
+  get_url:
+    url: "{{ release_download_base }}/{{ release_archive }}"
+    checksum: "{{ release_sumfile_alg }}:{{ release_download_base }}/{{ release_sumfile }}"
+    dest: "{{ release_tmp_path }}/{{ release_archive }}"
+    validate_certs: "{{ release_validate_certs }}"
+
+- name: extract {{ release_product }} {{ release_version }} to {{ release_bin_path }}
+  unarchive:
+    src: "{{ release_tmp_path }}/{{ release_archive }}"
+    dest: "{{ release_bin_path }}"
+    remote_src: yes
+    exclude: "{{ release_exclude_files }}"
+    owner: "{{ release_owner }}"
+    group: "{{ release_group }}"
+    mode: "{{ release_mode }}"

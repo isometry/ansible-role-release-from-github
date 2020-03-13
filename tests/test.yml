@@ -1,0 +1,5 @@
+---
+- hosts: localhost
+  roles:
+    - name: breathe.release-from-github
+      release_repo: hashicorp/terraform

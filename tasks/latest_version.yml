@@ -1,0 +1,33 @@
+- name: check latest {{ release_repo }} release
+  uri:
+    method: GET
+    url: https://api.github.com/repos/{{ release_repo }}/releases/latest
+    validate_certs: "{{ release_validate_certs }}"
+  check_mode: no
+  register: latest_release
+  ignore_errors: yes
+
+- name: update release_version
+  when: latest_release.status == 200
+  set_fact:
+    release_version: "{{ latest_release.json.tag_name[1:] }}"
+
+# Hashicorp don't publish releases on some products (e.g. vault, vagrant)
+- name: check latest {{ release_repo }} tag
+  when: latest_release.status == 404
+  uri:
+    method: GET
+    url: https://api.github.com/repos/{{ release_repo }}/tags
+    validate_certs: "{{ release_validate_certs }}"
+  check_mode: no
+  register: latest_tag
+
+- name: update release_version
+  when: latest_release.status == 404
+  set_fact:
+    release_version: "{{ latest_tag.json[0].name[1:] }}"
+
+- name: no latest version
+  fail:
+    msg: "Unable to determine latest version of {{ release_repo }}"
+  when: release_version == 'latest'
