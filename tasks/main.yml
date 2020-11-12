@@ -39,3 +39,4 @@
     group: "{{ release_group }}"
     mode: "{{ release_mode }}"
   become: "{{ not bin_path_stat.stat.writeable }}"
+  notify: "{{ release_notify | default(omit) }}"

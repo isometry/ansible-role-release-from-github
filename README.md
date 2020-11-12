@@ -42,9 +42,11 @@ release_exclude_files:
   - README
 ```
 
+If an external handler should be notified when the release is updated, the handler name can be passed via `release_notify`.
+
 ## Dependencies
 
-None
+* The target system must have `unzip(1)` or `tar(1)` and `gunzip(1)` available as determined by the format of the release to be installed.
 
 ## Example Playbooks
 
@@ -68,6 +70,31 @@ Deploy the latest version of [Terraform](https://github.com/hashicorp/terraform)
       release_repo: hashicorp/terraform
       release_tmp_path: ~/Downloads
       release_bin_path: ~/bin
+```
+
+Deploy version 1.6.0 of [Vault](https://vaultproject.io/) and trigger a rolling restart of cluster members:
+
+```yaml
+- hosts: vault-cluster
+
+  roles:
+    - name: breathe.release-from-github
+      release_repo: hashicorp/vault
+      release_version: 1.6.0
+      release_owner: root
+      release_group: root
+      release_notify: restart vault
+
+  handlers:
+    - name: restart vault
+      become: yes
+      systemd:
+        name: vault
+        state: restarted
+      throttle: 1
+
+  tasks:
+    # ellided
 ```
 
 ## License
