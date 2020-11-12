@@ -14,13 +14,22 @@
   when: release_version == "latest"
 
 - name: download {{ release_product }} {{ release_version }} archive to {{ release_tmp_path }}
+  when: not ansible_check_mode
   get_url:
     url: "{{ release_download_base }}/{{ release_archive }}"
     checksum: "{{ release_sumfile_alg }}:{{ release_download_base }}/{{ release_sumfile }}"
     dest: "{{ release_tmp_path }}/{{ release_archive }}"
     validate_certs: "{{ release_validate_certs }}"
 
+- name: stat {{ release_bin_path }}
+  stat:
+    path: "{{ release_bin_path }}"
+  register: bin_path_stat
+  changed_when: false
+  failed_when: not bin_path_stat.stat.exists
+
 - name: extract {{ release_product }} {{ release_version }} to {{ release_bin_path }}
+  when: not ansible_check_mode
   unarchive:
     src: "{{ release_tmp_path }}/{{ release_archive }}"
     dest: "{{ release_bin_path }}"
@@ -29,3 +38,4 @@
     owner: "{{ release_owner }}"
     group: "{{ release_group }}"
     mode: "{{ release_mode }}"
+  become: "{{ not bin_path_stat.stat.writeable }}"
