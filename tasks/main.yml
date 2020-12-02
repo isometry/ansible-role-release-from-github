@@ -22,6 +22,7 @@
     validate_certs: "{{ release_validate_certs }}"
 
 - name: stat {{ release_bin_path }}
+  become: no
   stat:
     path: "{{ release_bin_path }}"
   register: bin_path_stat
